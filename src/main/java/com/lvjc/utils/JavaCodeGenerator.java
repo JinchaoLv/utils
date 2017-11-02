@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -62,4 +64,45 @@ public class JavaCodeGenerator {
         }
     }
 
+    public static void setProperties(Class<?> targetObjectClass, String targetObjectName, String paramName, String fileName){
+        StringBuilder builder = new StringBuilder();
+        String ifFormat = "if(" + paramName + ".containsKey(\"%s\"))";
+        String stringFormat = targetObjectName + ".set%s((String) " + paramName + ".get(\"%s\"));";
+        String intFormat = targetObjectName + ".set%s(this.getInteger(" + paramName + ".get(\"%s\")));";
+        String booleanFormat = targetObjectName + ".set%s(this.getBoolean(" + paramName + ".get(\"%s\")));";
+        String bigDecimalFormat = targetObjectName + ".set%s(this.getBigDecimal(" + paramName + ".get(\"%s\")));";
+        String doubleFormat = targetObjectName + ".set%s(this.getDouble(" + paramName + ".get(\"%s\")));";
+        String dateFormat = targetObjectName + ".set%s(this.getDate(" + paramName + ".get(\"%s\")));";
+
+        Field[] fields = FieldUtil.getDeclaredFieldsIncludingInherited(targetObjectClass);
+        Field[] sortedFields = FieldUtil.dictionarySort(fields);
+        for(Field field : sortedFields){
+            String fieldName = field.getName();
+            Class fieldType = field.getType();
+
+            builder.append(String.format(ifFormat, fieldName));
+            builder.append("\r\n");
+            builder.append("\t");
+            if(fieldType == Integer.class)
+                builder.append(String.format(intFormat, StringUtil.capitalizedFirstLetter(fieldName), fieldName));
+            else if(fieldType == String.class)
+                builder.append(String.format(stringFormat, StringUtil.capitalizedFirstLetter(fieldName), fieldName));
+            else if(fieldType == Boolean.class)
+                builder.append(String.format(booleanFormat, StringUtil.capitalizedFirstLetter(fieldName), fieldName));
+            else if(fieldType == BigDecimal.class)
+                builder.append(String.format(bigDecimalFormat, StringUtil.capitalizedFirstLetter(fieldName), fieldName));
+            else if(fieldType == Double.class)
+                builder.append(String.format(doubleFormat, StringUtil.capitalizedFirstLetter(fieldName), fieldName));
+            else if(fieldType.equals(Date.class))
+                builder.append(String.format(dateFormat, StringUtil.capitalizedFirstLetter(fieldName), fieldName));
+            else
+                builder.append("error:没有匹配的类型");
+            builder.append("\r\n");
+        }
+        try(BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileName)))){
+            writer.write(builder.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
