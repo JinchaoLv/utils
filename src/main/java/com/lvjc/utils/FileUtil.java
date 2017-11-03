@@ -20,6 +20,7 @@ public class FileUtil {
             String line;
             while ((line = reader.readLine()) != null){
                 builder.append(line);
+                builder.append("\r\n");
             }
         } catch (IOException e) {
             return null;
