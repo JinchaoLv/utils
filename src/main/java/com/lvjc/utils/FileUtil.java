@@ -1,6 +1,9 @@
 package com.lvjc.utils;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 文件流工具
@@ -56,5 +59,20 @@ public class FileUtil {
                 writer.write(content);
             }
         }
+    }
+
+    /**
+     * 获取指定路径下所有文件名，不含子路径
+     * @param dictionary
+     * @return
+     */
+    public static List<String> getDictionaryFileNames(String dictionary){
+        List<String> fileNames = new ArrayList<>();
+        File[] files = new File(dictionary).listFiles();
+        for(File file : files){
+            if(file.isFile())
+                fileNames.add(file.getName());
+        }
+        return fileNames;
     }
 }
